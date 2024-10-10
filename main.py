@@ -1,58 +1,60 @@
-from sympy import *
-from timeit import default_timer as timer
-import bisect
+import sympy
 
-n = 2
-prime_list = []
-truth_time = 0
-custom_time = 0
+prime = dict()
+mistakes = []
+def count():
+    stop_at = 377000471
+    i = 2
+    num = formula(i)
+    while num <= stop_at:
+        # print("#######" + str(i) + " " + str(num))
+        factored_number = num
+        if num == 1:
+            i = i + 1
+            num = formula(i)
+            continue
+        is_prime = True
+        for key,value in prime.items():
+            while value < num:
+                value += key
+            prime[key] = value
+            if value == num:
+                factored_number = factor(factored_number, key)
+                is_prime = False
+        if is_prime:
+            prime[num] = num
+            print(str(i) + " " + str(num) + " is prime")
+            if not sympy.isprime(num):
+                mistakes.append(num)
+                print(str(num) + " is mistake")
+                keys_string = ', '.join(str(key) for key in prime.keys())
+                print(keys_string)
+        else:
+            if factored_number != 1:
+                if factored_number not in prime:
+                    prime[factored_number] = factored_number
+                print(str(i) + " " + str(num) + " is not prime")
 
+        i = i + 1
+        num = formula(i)
 
-def evaluate_formula(num):
-    return num * num + (num - 1)
+def factor(num, fact):
+    while num % fact == 0:
+        num = num / fact
+    return num
 
+def formula(x):
+    # return pow(x, 2) + (x - 1)
+    # return pow(x, 2) - (x - 1)
+    # return pow(x, 2) + (x + 1)
+    # return pow(x, 2) - (x + 1)
+    # return pow(x, 3) - pow(x - 1, 2)
+    return pow(2, x) - 1
 
-def custom_prime_checker(num):
-    max_divisor = num**0.5
-    for prime_list_element in prime_list:
-        if prime_list_element > max_divisor:
-            break
-        if num % prime_list_element == 0:
-            known_reduced_factor = num / prime_list_element
-            prime_factor_list = primefactors(known_reduced_factor)
-            for prime_factor_element in prime_factor_list:
-                if prime_factor_element not in prime_list:
-                    bisect.insort(prime_list, prime_factor_element)
-            return False
-    bisect.insort(prime_list, num)
-    return True
-
-
-while True:
-
-    evaluated_expression = evaluate_formula(n)
-
-    start = timer()
-    is_prime_truth = isprime(evaluated_expression)
-    end = timer()
-    truth_time += (end - start)
-
-    start = timer()
-    is_prime_custom = custom_prime_checker(evaluated_expression)
-    end = timer()
-    custom_time += (end - start)
-
-    if is_prime_truth != is_prime_custom:
-        print(str(n) + "\t\t\t\t\t" +
-              str(evaluated_expression) + "\t\t\t\t\t\t\t\t\t" +
-              str(is_prime_truth) + "\t" +
-              str(is_prime_custom) + "\t" +
-              str(prime_list))
-        break
-    if is_prime_truth is True:
-        print(str(n) + "\t\t\t" +
-              str(evaluated_expression) + "\t\t\t\t\t" +
-              str("{:.3f}".format(truth_time)) + "\t\t" +
-              str("{:.3f}".format(custom_time)))
-
-    n = n + 1
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    count()
+    total_factors = 0
+    for key in prime.keys():
+        total_factors = total_factors + 1
+    print(str(total_factors) + " factors")
