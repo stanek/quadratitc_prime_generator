@@ -1,60 +1,141 @@
 import sympy
+import timeit
+import bisect
 
-prime = dict()
-mistakes = []
-def count():
-    stop_at = 377000471
-    i = 2
+class OrderedSet:
+    def __init__(self, iterable=None):
+        self._data = []    # List to maintain order and allow indexing
+        self._set = set()  # Set to ensure uniqueness
+
+        if iterable:
+            for item in iterable:
+                self.add(item)
+
+    def add(self, item):
+        if item not in self._set:
+            self._data.append(item)
+            self._set.add(item)
+
+    def add_at_end(self, item):
+        if item not in self._set:
+            self._data.append(item)
+            self._set.add(item)
+
+    def insert_in_sorted_location(self, item):
+        if item in self._set:
+            pass
+        else:
+            bisect.insort(self._data, item)
+            self._set.add(item)
+
+    def insert(self, index, item):
+        if item in self._set:
+            # Optional: Move the existing item to the new index
+            self._data.remove(item)
+            self._data.insert(index, item)
+        else:
+            self._data.insert(index, item)
+            self._set.add(item)
+
+    def remove(self, item):
+        if item in self._set:
+            self._data.remove(item)
+            self._set.remove(item)
+        else:
+            raise KeyError(f"Item {item} not found in OrderedSet.")
+
+    def __getitem__(self, index):
+        return self._data[index]
+
+    def __setitem__(self, index, item):
+        # Remove the old item
+        old_item = self._data[index]
+        self._set.remove(old_item)
+
+        # Insert the new item
+        if item in self._set:
+            raise ValueError(f"Item {item} already exists in OrderedSet.")
+        self._data[index] = item
+        self._set.add(item)
+
+    def __delitem__(self, index):
+        item = self._data.pop(index)
+        self._set.remove(item)
+
+    def __contains__(self, item):
+        return item in self._set
+
+    def __len__(self):
+        return len(self._data)
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def index(self, item):
+        return self._data.index(item)
+
+    def __repr__(self):
+        return f"OrderedSet({self._data})"
+
+prime_set = OrderedSet()
+def new_count():
+    stop_at = 250
+    i = 1
     num = formula(i)
-    while num <= stop_at:
-        # print("#######" + str(i) + " " + str(num))
+    while i <= stop_at:
         factored_number = num
-        if num == 1:
+        if num <= 1:
+            print(str(i) + " " + str(num) + " is One")
             i = i + 1
             num = formula(i)
             continue
         is_prime = True
-        for key,value in prime.items():
-            while value < num:
-                value += key
-            prime[key] = value
-            if value == num:
-                factored_number = factor(factored_number, key)
+        total_factors = []
+        sqrt_value = num ** 0.5
+        for x in prime_set:
+            if x > sqrt_value:
+                break
+            if num % x == 0:
+                factored_number, factors = factor(factored_number, x)
+                for fac in factors:
+                    total_factors.append(fac)
                 is_prime = False
         if is_prime:
-            prime[num] = num
-            print(str(i) + " " + str(num) + " is prime")
+            prime_set.add_at_end(num)
+            print(str(i) + " " + str(num) + " is Prime" + " {" + str(len(prime_set)) + "}")
             if not sympy.isprime(num):
-                mistakes.append(num)
-                print(str(num) + " is mistake")
-                keys_string = ', '.join(str(key) for key in prime.keys())
-                print(keys_string)
+                print(str(i) + " " + str(num) + " is a Mistaken Prime")
+                exit(num)
         else:
             if factored_number != 1:
-                if factored_number not in prime:
-                    prime[factored_number] = factored_number
-                print(str(i) + " " + str(num) + " is not prime")
+                prime_set.insert_in_sorted_location(factored_number)
+                total_factors.append(int(factored_number))
+
+            print(str(i) + " " + str(num) + " factors " + " x ".join(map(str, total_factors)) + " {" + str(len(prime_set)) + "}")
 
         i = i + 1
         num = formula(i)
 
 def factor(num, fact):
+    factors = []
     while num % fact == 0:
         num = num / fact
-    return num
+        factors.append(fact)
+    return int(num), factors
 
 def formula(x):
-    return pow(x, 2) + (x - 1)
+    return x
+    # return pow(x, 2) + (x - 1)
     # return pow(x, 2) - (x - 1)
+    # return pow(x, 2) + ((3*x) - 1)
+    # return pow(x, 2) + ((5*x) - 1)
+    # return pow(x, 2) + ((7*x) - 1)
+    # return pow(x, 2) + ((6546546545*x) - 1)
     # return pow(x, 2) + (x + 1)
     # return pow(x, 2) - (x + 1)
-    # return pow(x, 3) - pow(x - 1, 2)
+    # return pow(x, 3) - pow(x, 2) - pow(x, 1) - 2
     # return pow(2, x) - 1
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    count()
-    total_factors = 0
-    for key in prime.keys():
-        total_factors = total_factors + 1
-    print(str(total_factors) + " factors")
+    execution_time = timeit.timeit(new_count, number=1)
+    print("new_count() in " + str(execution_time) + " seconds")
