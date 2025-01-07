@@ -79,9 +79,11 @@ class OrderedSet:
 
 prime_set = OrderedSet()
 def new_count():
-    stop_at = 250
+    stop_at = 2500000000
+    stop_at_num = 2707223
     i = 1
     num = formula(i)
+
     while i <= stop_at:
         factored_number = num
         if num <= 1:
@@ -100,6 +102,7 @@ def new_count():
                 for fac in factors:
                     total_factors.append(fac)
                 is_prime = False
+
         if is_prime:
             prime_set.add_at_end(num)
             print(str(i) + " " + str(num) + " is Prime" + " {" + str(len(prime_set)) + "}")
@@ -115,6 +118,9 @@ def new_count():
 
         i = i + 1
         num = formula(i)
+        if num > stop_at_num:
+            return
+
 
 def factor(num, fact):
     factors = []
@@ -124,8 +130,11 @@ def factor(num, fact):
     return int(num), factors
 
 def formula(x):
-    return x
-    # return pow(x, 2) + (x - 1)
+    return pow(x, 2) + (x - 1)
+
+    # return x
+    # return pow(x, 2) + 1
+    # return pow(x, 6) + 2
     # return pow(x, 2) - (x - 1)
     # return pow(x, 2) + ((3*x) - 1)
     # return pow(x, 2) + ((5*x) - 1)
